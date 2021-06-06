@@ -13,7 +13,7 @@ function getLocalStorage(key) {
 function checkHistory() {
   var localHistory = getLocalStorage("history")
   if(localHistory != null) {
-    locationHistory = JSON.parse(localHistory).sort((a, b) => a > b ? 1:-1);
+    locationHistory = JSON.parse(localHistory).sort((a, b) => a.city > b.city ? 1:-1);
   }
   console.log(locationHistory)
 }
@@ -22,10 +22,13 @@ $(function(){
   checkHistory();
   $.each(locationHistory, function(key, item){
     console.log(key, item.city)
-    $(".history").append("<div class='row'><button>" + item.city + "</button></div>")
+    $(".history").append("<div class='row' id='searchHistory'><button>" + item.city + "</button></div>")
   })
   $(".search").on("click", function(e){
+    $("#weatherInfo").html("")
+    $("")
     var searchQuery = $(".searchQuery").val()
+    cardDeck()
     getLatLon(searchQuery);
   })
 })
@@ -48,9 +51,14 @@ function getLatLon(userInput) {
           locationObject.lon = coordLon
           console.log(locationObject)
           locationHistory.push(locationObject)
+          // locationHistory.filter((item, pos) => locationHistory.indexOf(item) == pos).sort((a,b) => a.city > b.city ? 1 : -1);
+          // updateLocalStorage("history", JSON.stringify(locationHistory))
+          
+          // $('.history').find('.row').remove();
+          // $('.history').append(locationHistory.map(location => "<div class='row' id='searchHistory'><button>" + location.city + "</button></div>"))
           console.log(locationHistory)
           updateLocalStorage("history", JSON.stringify(locationHistory))
-          $(".history").append("<div class='row'><button>" + locationObject.city + "</button></div>")
+          $(".history").append("<div class='row' id='searchHistory'><button>" + locationObject.city + "</button></div>")
           return oneCallApi(coordLat, coordLon);
         });
       } else {
@@ -75,14 +83,20 @@ function oneCallApi(lat, lon) {
         response.json().then(function (data) {
           console.log(data)
 
+          var date = (new Date(data.current.dt*1000).toLocaleDateString("en-US"))
+          var {humidity, temp, uvi, wind_speed, temp} = data.current
+          currentDayDisplay(date, {humidity, temp, uvi, wind_speed, temp});
+          
+
           for(i = 1; i <= 5; i++){
             const date = (new Date(data.daily[i].dt*1000).toLocaleDateString("en-US"))
             var icon = data.daily[i].weather[0].icon
             const iconUrl = "http://openweathermap.org/img/wn/" + icon + ".png"
-            const dailyTemp = data.daily[i].temp.day
+            const dailyTemp = Math.floor(data.daily[i].temp.day)
             const humidity = data.daily[i].humidity
-            const windSpeed = data.daily[1].wind_speed
-            weatherDisplay({iconUrl, dailyTemp, date, humidity, windSpeed});
+            const windSpeed = data.daily[i].wind_speed
+            $("<div>").attr("class", "card").attr("id", "infoCard" + i).appendTo("#weatherInfo")
+            fiveDayDisplay(i, {iconUrl, dailyTemp, date, humidity, windSpeed});
           }
           // var humidity = data.current.humidity;
         });
@@ -95,13 +109,24 @@ function oneCallApi(lat, lon) {
     });
 }
 
-function weatherDisplay(data) {
-  $("<div>").attr("class", "col-2").text(data.date).appendTo("#weather");
-  $("<img>").attr("src", data.iconUrl).appendTo("#weather");
-  $("<div>").attr("class", "col-2").text("Temp: " + data.dailyTemp + " \u00B0F").appendTo("#weather");
-  $("<div>").attr("class", "col-2").text("Humidity: " + data.humidity + "%").appendTo("#weather");
-  $("<div>").attr("class", "col-2").text("Wind Speed: " + data.windSpeed + " MPH").appendTo("#weather");
-  // $("<div>").attr("class", "col-2").text(data).appendTo("#weather");
+function cardDeck(){
+  $("<div>").attr("class", "card-deck").attr("id", "weatherInfo").appendTo("#weather")
+}
+
+function currentDayDisplay(date, data){
+  $("<div>").attr("class", "list-group-item").text("UV: " + data.uvi).prependTo(".currentWeather")
+  $("<div>").attr("class", "list-group-item").text("Wind Speed: " + data.wind_speed).prependTo(".currentWeather")
+  $("<div>").attr("class", "list-group-item").text("Humidity: " + data.humidity + " %").prependTo(".currentWeather")
+  $("<div>").attr("class", "list-group-item").text("Temp: " + Math.floor(data.temp) + " \u00B0F").prependTo(".currentWeather")
+  $("<div>").attr("class", "list-group-item").text(date).prependTo(".currentWeather")
+}
+
+function fiveDayDisplay(i, data) {
+  $("<div>").attr("class", "list-group-item").text(data.date).appendTo("#infoCard" + i);
+  $("<img>").attr("src", data.iconUrl).attr("class", "list-group-item").appendTo("#infoCard" + i);
+  $("<div>").attr("class", "list-group-item").text("Temp: " + data.dailyTemp + " \u00B0F").appendTo("#infoCard" + i);
+  $("<div>").attr("class", "list-group-item").text("Humidity: " + data.humidity + "%").appendTo("#infoCard" + i);
+  $("<div>").attr("class", "list-group-item").text("Wind Speed: " + data.windSpeed + " MPH").appendTo("#infoCard" + i);
 }
 
 // getLatLon(); 

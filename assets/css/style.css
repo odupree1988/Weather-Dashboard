@@ -1,0 +1,13 @@
+header h1 {
+    text-align: center;
+}
+
+div .history {
+    display: flex;
+    flex-direction: column;
+}
+
+#searchHistory {
+    /* display: flex; */
+    justify-content: center;
+}
