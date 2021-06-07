@@ -1,4 +1,5 @@
 //user input search function that fires on.click event 'get lat/lon'
+var cityName
 
 var locationHistory = []
 
@@ -12,28 +13,53 @@ function getLocalStorage(key) {
 
 function checkHistory() {
   var localHistory = getLocalStorage("history")
+  // localHistory.city[localHistory.length-1]
+  // console.log({history:JSON.stringify([0].city)})
   if(localHistory != null) {
-    locationHistory = JSON.parse(localHistory).sort((a, b) => a.city > b.city ? 1:-1);
-  }
-  console.log(locationHistory)
+    locationHistory = JSON.parse(localHistory)
+    // if(locationHistory.length >= 9){
+    //   var difference = (locationHistory.length + 1) - 10
+    //   for(var i = 1; i >= difference; i++){ 
+    //   locationHistory.shift()
+    //   }
+    return true
+    // .sort((a, b) => a.city > b.city ? 1:-1);  
+  } 
+  return false
+}
+
+function renderWeather(lat, lon){
+  getLatLon()
+
 }
 
 $(function(){
-  checkHistory();
+  if(checkHistory()){
+    const tempLocation = locationHistory[locationHistory.length-1]
+    oneCallApi(tempLocation.lat, tempLocation.lon)
+  }
+  cardDeck();
+  console.log(locationHistory)
   $.each(locationHistory, function(key, item){
-    console.log(key, item.city)
-    $(".history").append("<div class='row' id='searchHistory'><button>" + item.city + "</button></div>")
+    // console.log(key, item.city)
+    $(".history").append("<div class='row recall'><button data-lat='" + item.lat + "' data-lon='" + item.lon + "'>" + item.city + "</button></div>")
   })
   $(".search").on("click", function(e){
-    $("#weatherInfo").html("")
-    $("")
+    $(".list-group-item").remove();
+    $("#weatherInfo").empty()
     var searchQuery = $(".searchQuery").val()
-    cardDeck()
     getLatLon(searchQuery);
+  })
+  $(".history").on("click", ".recall button", function(){
+    var $this = $(this)
+    $(".list-group-item").remove();
+    $("#weatherInfo").empty()
+    oneCallApi($this.data("lat"), $this.data("lon"))
   })
 })
 
 function getLatLon(userInput) {
+  cityName = userInput
   var weatherApi =
   "https://api.openweathermap.org/data/2.5/weather?q=" +
   userInput +
@@ -45,7 +71,6 @@ function getLatLon(userInput) {
           var coordLat = data.coord.lat;
           var coordLon = data.coord.lon;
           var locationObject = {}
-          // console.log(data)
           locationObject.city = data.name;
           locationObject.lat = coordLat
           locationObject.lon = coordLon
@@ -55,10 +80,10 @@ function getLatLon(userInput) {
           // updateLocalStorage("history", JSON.stringify(locationHistory))
           
           // $('.history').find('.row').remove();
-          // $('.history').append(locationHistory.map(location => "<div class='row' id='searchHistory'><button>" + location.city + "</button></div>"))
+          // $('.history').append(locationHistory.map(location => "<div class='row recall'><button>" + location.city + "</button></div>"))
           console.log(locationHistory)
           updateLocalStorage("history", JSON.stringify(locationHistory))
-          $(".history").append("<div class='row' id='searchHistory'><button>" + locationObject.city + "</button></div>")
+          $(".history").append("<div class='row recall'><button data-lat='" + locationObject.lat + "' data-lon='" + locationObject.lon + "'>" + locationObject.city + "</button></div>")
           return oneCallApi(coordLat, coordLon);
         });
       } else {
@@ -86,6 +111,7 @@ function oneCallApi(lat, lon) {
           var date = (new Date(data.current.dt*1000).toLocaleDateString("en-US"))
           var {humidity, temp, uvi, wind_speed, temp} = data.current
           currentDayDisplay(date, {humidity, temp, uvi, wind_speed, temp});
+          console.log("here" + data)
           
 
           for(i = 1; i <= 5; i++){
@@ -97,7 +123,8 @@ function oneCallApi(lat, lon) {
             const windSpeed = data.daily[i].wind_speed
             $("<div>").attr("class", "card").attr("id", "infoCard" + i).appendTo("#weatherInfo")
             fiveDayDisplay(i, {iconUrl, dailyTemp, date, humidity, windSpeed});
-          }
+          } 
+          console.log("here")
           // var humidity = data.current.humidity;
         });
       } else {
@@ -118,7 +145,8 @@ function currentDayDisplay(date, data){
   $("<div>").attr("class", "list-group-item").text("Wind Speed: " + data.wind_speed).prependTo(".currentWeather")
   $("<div>").attr("class", "list-group-item").text("Humidity: " + data.humidity + " %").prependTo(".currentWeather")
   $("<div>").attr("class", "list-group-item").text("Temp: " + Math.floor(data.temp) + " \u00B0F").prependTo(".currentWeather")
-  $("<div>").attr("class", "list-group-item").text(date).prependTo(".currentWeather")
+  $("<div>").attr("class", "list-group-item").text(cityName + date).prependTo(".currentWeather")
+  console.log(locationHistory)
 }
 
 function fiveDayDisplay(i, data) {
