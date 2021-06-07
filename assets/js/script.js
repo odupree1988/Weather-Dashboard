@@ -1,4 +1,3 @@
-//user input search function that fires on.click event 'get lat/lon'
 var cityName
 
 var locationHistory = []
@@ -13,17 +12,9 @@ function getLocalStorage(key) {
 
 function checkHistory() {
   var localHistory = getLocalStorage("history")
-  // localHistory.city[localHistory.length-1]
-  // console.log({history:JSON.stringify([0].city)})
   if(localHistory != null) {
     locationHistory = JSON.parse(localHistory)
-    // if(locationHistory.length >= 9){
-    //   var difference = (locationHistory.length + 1) - 10
-    //   for(var i = 1; i >= difference; i++){ 
-    //   locationHistory.shift()
-    //   }
-    return true
-    // .sort((a, b) => a.city > b.city ? 1:-1);  
+    return true 
   } 
   return false
 }
@@ -39,9 +30,7 @@ $(function(){
     oneCallApi(tempLocation.lat, tempLocation.lon)
   }
   cardDeck();
-  console.log(locationHistory)
   $.each(locationHistory, function(key, item){
-    // console.log(key, item.city)
     $(".history").append("<div class='row recall'><button data-lat='" + item.lat + "' data-lon='" + item.lon + "'>" + item.city + "</button></div>")
   })
   $(".search").on("click", function(e){
@@ -74,14 +63,7 @@ function getLatLon(userInput) {
           locationObject.city = data.name;
           locationObject.lat = coordLat
           locationObject.lon = coordLon
-          console.log(locationObject)
           locationHistory.push(locationObject)
-          // locationHistory.filter((item, pos) => locationHistory.indexOf(item) == pos).sort((a,b) => a.city > b.city ? 1 : -1);
-          // updateLocalStorage("history", JSON.stringify(locationHistory))
-          
-          // $('.history').find('.row').remove();
-          // $('.history').append(locationHistory.map(location => "<div class='row recall'><button>" + location.city + "</button></div>"))
-          console.log(locationHistory)
           updateLocalStorage("history", JSON.stringify(locationHistory))
           $(".history").append("<div class='row recall'><button data-lat='" + locationObject.lat + "' data-lon='" + locationObject.lon + "'>" + locationObject.city + "</button></div>")
           return oneCallApi(coordLat, coordLon);
@@ -106,12 +88,10 @@ function oneCallApi(lat, lon) {
     .then(function (response) {
       if (response.ok) {
         response.json().then(function (data) {
-          console.log(data)
 
           var date = (new Date(data.current.dt*1000).toLocaleDateString("en-US"))
           var {humidity, temp, uvi, wind_speed, temp} = data.current
           currentDayDisplay(date, {humidity, temp, uvi, wind_speed, temp});
-          console.log("here" + data)
           
 
           for(i = 1; i <= 5; i++){
@@ -124,8 +104,6 @@ function oneCallApi(lat, lon) {
             $("<div>").attr("class", "card").attr("id", "infoCard" + i).appendTo("#weatherInfo")
             fiveDayDisplay(i, {iconUrl, dailyTemp, date, humidity, windSpeed});
           } 
-          console.log("here")
-          // var humidity = data.current.humidity;
         });
       } else {
         alert("Error: " + response.statusText);
@@ -156,10 +134,3 @@ function fiveDayDisplay(i, data) {
   $("<div>").attr("class", "list-group-item").text("Humidity: " + data.humidity + "%").appendTo("#infoCard" + i);
   $("<div>").attr("class", "list-group-item").text("Wind Speed: " + data.windSpeed + " MPH").appendTo("#infoCard" + i);
 }
-
-// getLatLon(); 
-
-
-//object destructuring
-// const {temperature, humidity} = data.current
-// console.log(temperature)  
