@@ -91,8 +91,7 @@ function oneCallApi(lat, lon) {
 
           var date = (new Date(data.current.dt*1000).toLocaleDateString("en-US"))
           var {humidity, temp, uvi, wind_speed, temp} = data.current
-          currentDayDisplay(date, {humidity, temp, uvi, wind_speed, temp});
-          
+          currentDayDisplay(date, {humidity, temp, uvi, wind_speed, temp});          
 
           for(i = 1; i <= 5; i++){
             const date = (new Date(data.daily[i].dt*1000).toLocaleDateString("en-US"))
@@ -124,7 +123,6 @@ function currentDayDisplay(date, data){
   $("<div>").attr("class", "list-group-item").text("Humidity: " + data.humidity + " %").prependTo(".currentWeather")
   $("<div>").attr("class", "list-group-item").text("Temp: " + Math.floor(data.temp) + " \u00B0F").prependTo(".currentWeather")
   $("<div>").attr("class", "list-group-item").text(cityName + date).prependTo(".currentWeather")
-  console.log(locationHistory)
 }
 
 function fiveDayDisplay(i, data) {
